@@ -1,11 +1,12 @@
 /** @file Note business logic (no HTTP concerns) */
+import { HydratedDocument } from "mongoose";
 import { SafeError } from "../config.js";
 import { Note, INote } from "../models/Note.js";
 import { CreateNoteInput, UpdateNoteInput } from "../utils/input.js";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-async function findUserNote(userId: string, noteId: string): Promise<INote> {
+async function findUserNote(userId: string, noteId: string): Promise<HydratedDocument<INote>> {
   const note = await Note.findById(noteId);
   if (!note) {
     throw new SafeError("Note not found", 404);
@@ -23,8 +24,7 @@ export async function createNote(
   input: CreateNoteInput
 ): Promise<INote> {
   const note = await Note.create({
-    title: input.title,
-    content: input.content,
+    ...input,
     owner: userId,
   });
   return note.toObject();

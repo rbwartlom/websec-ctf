@@ -57,9 +57,9 @@ export function NotesPage() {
   const handleSaveNote = async (title: string, content: string) => {
     setIsSaving(true);
     try {
-      if (editingNote?._id) {
+      if (editingNote?.id) {
         await putApiNotesById({
-          path: { id: editingNote._id },
+          path: { id: editingNote.id },
           body: { title, content },
         });
       } else {

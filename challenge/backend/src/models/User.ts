@@ -6,7 +6,7 @@ import { isRecord } from "../utils/guards.js";
 // ─── Interface ───────────────────────────────────────────────────────────────
 
 export interface IUser {
-  _id: string;
+  id: string;
   email: string;
   passwordHash: string;
 }
@@ -16,7 +16,7 @@ export interface IUser {
 export function isUser(obj: unknown): obj is IUser {
   return (
     isRecord(obj) &&
-    typeof obj._id === "string" &&
+    typeof obj.id === "string" &&
     typeof obj.email === "string" &&
     typeof obj.passwordHash === "string"
   );

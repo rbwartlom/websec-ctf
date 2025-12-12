@@ -23,7 +23,7 @@ export function NoteList({ notes, onEdit, onDelete }: NoteListProps) {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {notes.map((note) => (
         <NoteCard
-          key={note._id}
+          key={note.id}
           note={note}
           onEdit={onEdit}
           onDelete={onDelete}

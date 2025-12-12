@@ -1,5 +1,5 @@
 /** @file Note routes (HTTP layer only) */
-import { Router } from "express";
+import { Request, Router } from "express";
 import { handleAsyncErrors, SafeError } from "../config.js";
 import { requireAuth } from "../auth.js";
 import { isCreateNoteInput, isUpdateNoteInput } from "../utils/input.js";
@@ -10,14 +10,19 @@ import {
   updateNote,
   deleteNote,
 } from "../controllers/note.js";
+import "../types.js"; // Ensure Express augmentation is loaded
 
 const notesRouter = Router();
 
 // All routes require authentication
 notesRouter.use(requireAuth);
 
-/** Helper to get userId from authenticated request */
-function getUserId(req: { userId?: string }): string {
+/**
+ * Extracts userId from an authenticated request.
+ * Uses the `userId` property added to Express.Request via types.ts augmentation.
+ * @throws SafeError if userId is missing (should not happen after requireAuth)
+ */
+function getUserId(req: Request): string {
   if (!req.userId) {
     throw new SafeError("Unauthorized", 401);
   }
@@ -220,7 +225,7 @@ notesRouter.delete(
  *     Note:
  *       type: object
  *       properties:
- *         _id:
+ *         id:
  *           type: string
  *         title:
  *           type: string

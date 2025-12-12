@@ -6,7 +6,7 @@ import { isRecord } from "../utils/guards.js";
 // ─── Interface ───────────────────────────────────────────────────────────────
 
 export interface INote {
-  _id: string;
+  id: string;
   title: string;
   content: string;
   owner: string;
@@ -17,7 +17,7 @@ export interface INote {
 export function isNote(obj: unknown): obj is INote {
   return (
     isRecord(obj) &&
-    typeof obj._id === "string" &&
+    typeof obj.id === "string" &&
     typeof obj.title === "string" &&
     typeof obj.content === "string" &&
     typeof obj.owner === "string"

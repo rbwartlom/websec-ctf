@@ -4,6 +4,7 @@ import { handleAsyncErrors, SafeError } from "../config.js";
 import { requireAuth } from "../auth.js";
 import { isSignupInput, isLoginInput } from "../utils/input.js";
 import { signupUser, loginUser, getMe } from "../controllers/user.js";
+import "../types.js"; // Ensure Express augmentation is loaded
 
 const usersRouter = Router();
 
@@ -40,7 +41,7 @@ const usersRouter = Router();
  *                 user:
  *                   type: object
  *                   properties:
- *                     _id:
+ *                     id:
  *                       type: string
  *                     email:
  *                       type: string
@@ -92,7 +93,7 @@ usersRouter.post(
  *                 user:
  *                   type: object
  *                   properties:
- *                     _id:
+ *                     id:
  *                       type: string
  *                     email:
  *                       type: string
@@ -126,7 +127,7 @@ usersRouter.post(
  *             schema:
  *               type: object
  *               properties:
- *                 _id:
+ *                 id:
  *                   type: string
  *                 email:
  *                   type: string

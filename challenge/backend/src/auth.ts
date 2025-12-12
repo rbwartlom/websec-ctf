@@ -2,6 +2,7 @@
 import { Request, Response, NextFunction } from "express";
 import { handleAsyncErrors, SafeError } from "./config.js";
 import { verifyToken } from "./utils/jwt.js";
+import "./types.js"; // Ensure Express.Request augmentation is loaded
 
 /**
  * Extracts Bearer token from Authorization header.

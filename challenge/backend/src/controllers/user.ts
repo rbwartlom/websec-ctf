@@ -18,7 +18,10 @@ function validateEmail(email: string): void {
 
 function validatePassword(password: string): void {
   if (password.length < MIN_PASSWORD_LENGTH) {
-    throw new SafeError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters`, 400);
+    throw new SafeError(
+      `Password must be at least ${MIN_PASSWORD_LENGTH} characters`,
+      400
+    );
   }
 }
 
@@ -26,7 +29,7 @@ function validatePassword(password: string): void {
 
 export interface AuthResponse {
   token: string;
-  user: { _id: string; email: string };
+  user: { id: string; email: string };
 }
 
 export async function signupUser(input: SignupInput): Promise<AuthResponse> {
@@ -39,10 +42,10 @@ export async function signupUser(input: SignupInput): Promise<AuthResponse> {
   }
 
   const passwordHash = await hashPassword(input.password);
-  const user = await User.create({ email: input.email, passwordHash });
+  const user = await User.create({ ...input, passwordHash });
 
-  const token = signToken({ userId: user._id });
-  return { token, user: { _id: user._id, email: user.email } };
+  const token = signToken({ userId: user.id });
+  return { token, user: { id: user.id, email: user.email } };
 }
 
 export async function loginUser(input: LoginInput): Promise<AuthResponse> {
@@ -56,15 +59,17 @@ export async function loginUser(input: LoginInput): Promise<AuthResponse> {
     throw new SafeError("Invalid credentials", 401);
   }
 
-  const token = signToken({ userId: user._id });
-  return { token, user: { _id: user._id, email: user.email } };
+  const token = signToken({ userId: user.id });
+  return { token, user: { id: user.id, email: user.email } };
 }
 
-export async function getMe(userId: string): Promise<{ _id: string; email: string }> {
-  const user = await User.findById(userId).select("-passwordHash");
+export async function getMe(
+  userId: string
+): Promise<{ id: string; email: string }> {
+  const user = await User.findOne({ id: userId }).select("-passwordHash");
   if (!user) {
     throw new SafeError("User not found", 404);
   }
 
-  return { _id: user._id, email: user.email };
+  return { id: user.id, email: user.email };
 }

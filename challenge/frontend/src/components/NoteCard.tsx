@@ -16,8 +16,8 @@ interface NoteCardProps {
 
 export function NoteCard({ note, onEdit, onDelete }: NoteCardProps) {
   const handleDelete = () => {
-    if (note._id) {
-      onDelete(note._id);
+    if (note.id) {
+      onDelete(note.id);
     }
   };
 
