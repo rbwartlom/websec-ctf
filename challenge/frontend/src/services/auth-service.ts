@@ -1,17 +1,42 @@
+/**
+ * Auth Service
+ * Manages JWT token storage and authentication state
+ */
 
+const TOKEN_KEY = "auth_token";
 
 /**
- * @returns The value that should be set in the `Authorization` header of requests to the backend, or `null` if no authorization is provided.
+ * Returns the Authorization header value if a token exists.
+ * @returns The bearer token string or null if not authenticated
  */
 export function getAuthHeader(): string | null {
-  //TODO: implement this function
-  return null; 
+  const token = localStorage.getItem(TOKEN_KEY);
+  return token ? `Bearer ${token}` : null;
 }
 
 /**
- * Sets the authorization key to be used in the `Authorization` header of requests to the backend. Should just get the key from the backend.
- * @param _authKey The authorization key to set, or `null` to clear the key.
+ * Stores or clears the authentication token.
+ * @param authKey The JWT token to store, or null to clear
  */
-export function setAuthKey(_authKey: string | null): void { // eslint-disable-line @typescript-eslint/no-unused-vars
+export function setAuthKey(authKey: string | null): void {
+  if (authKey) {
+    localStorage.setItem(TOKEN_KEY, authKey);
+  } else {
+    localStorage.removeItem(TOKEN_KEY);
+  }
+}
 
+/**
+ * Checks if the user is currently authenticated.
+ * @returns true if a token exists
+ */
+export function isAuthenticated(): boolean {
+  return localStorage.getItem(TOKEN_KEY) !== null;
+}
+
+/**
+ * Clears the authentication token (logout).
+ */
+export function clearAuth(): void {
+  localStorage.removeItem(TOKEN_KEY);
 }

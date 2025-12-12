@@ -11,6 +11,7 @@ import { checkENVs, MONGODB_URI, PORT, SafeError } from "./config.js";
 import { swaggerSpec } from "./swagger.js";
 import usersRouter from "./routers/users.js";
 import notesRouter from "./routers/notes.js";
+import helmet from "helmet";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,11 +21,12 @@ const __dirname = path.dirname(__filename);
 export function createApp() {
   const app = express();
 
+  app.use(helmet());
   // CORS
   const corsOptions =
     process.env.NODE_ENV === "development"
       ? { origin: ["http://localhost:5173"], credentials: true }
-      : {};
+      : { origin: process.env.BASE_URL, credentials: true };
   app.use(cors(corsOptions));
   app.use(express.json());
 
