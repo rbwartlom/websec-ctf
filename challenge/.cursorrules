@@ -1,0 +1,10 @@
+Follow these rules strictly (Express + Mongoose + TypeScript).
+
+## Layers
+- **Routers** (`backend/src/routers/*`): HTTP only. Shape-check `req.body/params/query`, call controllers, set status + `res.json`. No business rules.
+- **Controllers** (`backend/src/controllers/*`): business logic + DB writes + non-typing validation. No `Request/Response`, no `res.*`. Throw `SafeError(message, status)` for expected failures.
+- **Utils** (`backend/src/utils/*`): pure helpers. No imports from `models/*` or `controllers/*`, no DB, no Express.
+
+## TypeScript
+- **No type casts**: never use `as ...` (including `as unknown as ...`).
+- Narrow `unknown` with type guards (`typeof`, `in`, `Array.isArray`, `Record<string, unknown>`). Avoid `any`.

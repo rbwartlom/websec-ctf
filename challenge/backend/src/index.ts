@@ -1,58 +1,80 @@
-/** @file The main server file, add routers and middleware as needed. This file should not house business logic */
-import express, { NextFunction } from "express";
+/** @file Application entry point */
+import "./types.js"; // Load type augmentations
+import express, { NextFunction, Request, Response } from "express";
 import path from "path";
 import { fileURLToPath } from "url";
-import swaggerUi from "swagger-ui-express";
-import { checkENVs, PORT, SafeError } from "./config.js";
-import exampleRouter from "./routers/example.js";
-import { swaggerSpec } from "./swagger.js";
+import mongoose from "mongoose";
 import cors from "cors";
+import swaggerUi from "swagger-ui-express";
+
+import { checkENVs, MONGODB_URI, PORT, SafeError } from "./config.js";
+import { swaggerSpec } from "./swagger.js";
+import usersRouter from "./routers/users.js";
+import notesRouter from "./routers/notes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export function startServer() {
-  const app = express();
-  checkENVs(); //throws if required ENVs are missing
+// ─── App Factory ─────────────────────────────────────────────────────────────
 
-  // Usual express server here
-  const corsSettings =
+export function createApp() {
+  const app = express();
+
+  // CORS
+  const corsOptions =
     process.env.NODE_ENV === "development"
-      ? {
-          origin: ["http://localhost:5173"],
-          credentials: true,
-        }
+      ? { origin: ["http://localhost:5173"], credentials: true }
       : {};
-  // Usual express server here
-  app.use(cors(corsSettings));
+  app.use(cors(corsOptions));
   app.use(express.json());
 
-  app.use("/api/example", exampleRouter);
-
+  // API routes
+  app.use("/api/users", usersRouter);
+  app.use("/api/notes", notesRouter);
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-  app.use("/api/*", (req, res) => {
-    res.status(404).send("Not Found");
+  // API 404
+  app.use("/api/*", (_req, res) => {
+    res.status(404).json({ message: "Not Found" });
   });
 
+  // Static frontend
   const fePath = path.join(__dirname, "../../dist/frontend");
   app.use(express.static(fePath));
 
-  app.use((err: any, req: any, res: any, next: NextFunction) => {
+  // Error handler
+  app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
     if (err instanceof SafeError) {
-      return res.status(err.responseCode).json({ message: err.message });
+      res.status(err.responseCode).json({ message: err.message });
     } else {
-      return res.status(500).json({ message: `Internal Server Error` });
+      console.error(err);
+      res.status(500).json({ message: "Internal Server Error" });
     }
   });
 
   return app;
 }
 
-// Only start the server if we are not in a test environment. Otherwise, the server will be in the test file
+// ─── Database ────────────────────────────────────────────────────────────────
+
+export async function connectDB(): Promise<void> {
+  try {
+    await mongoose.connect(MONGODB_URI);
+    console.log("Connected to MongoDB");
+  } catch (error) {
+    console.error("MongoDB connection error:", error);
+    process.exit(1);
+  }
+}
+
+// ─── Bootstrap ───────────────────────────────────────────────────────────────
+
 if (process.env.NODE_ENV !== "test") {
-  const app = startServer();
-  app.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`);
+  checkENVs();
+  connectDB().then(() => {
+    const app = createApp();
+    app.listen(PORT, () => {
+      console.log(`Server listening on port ${PORT}`);
+    });
   });
 }
