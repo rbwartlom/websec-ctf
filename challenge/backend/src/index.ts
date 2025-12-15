@@ -11,6 +11,7 @@ import { checkENVs, MONGODB_URI, PORT, SafeError } from "./config.js";
 import { swaggerSpec } from "./swagger.js";
 import usersRouter from "./routers/users.js";
 import notesRouter from "./routers/notes.js";
+import flagRouter from "./routers/flag.js";
 import helmet from "helmet";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -33,6 +34,7 @@ export function createApp() {
   // API routes
   app.use("/api/users", usersRouter);
   app.use("/api/notes", notesRouter);
+  app.use("/api/flag", flagRouter);
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
   // API 404

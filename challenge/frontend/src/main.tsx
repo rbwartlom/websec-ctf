@@ -7,6 +7,7 @@ import App from "./App";
 import { LoginPage } from "./pages/LoginPage";
 import { SignupPage } from "./pages/SignupPage";
 import { NotesPage } from "./pages/NotesPage";
+import { PublicNotesPage } from "./pages/PublicNotesPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { client } from "./services/api-service";
 import { getAuthHeader } from "./services/auth-service";
@@ -62,6 +63,7 @@ const router = createBrowserRouter([
       { index: true, element: <Navigate to="/notes" replace /> },
       { path: "login", element: <LoginPage /> },
       { path: "signup", element: <SignupPage /> },
+      { path: "public", element: <PublicNotesPage /> },
       {
         path: "notes",
         element: (

@@ -31,7 +31,7 @@ export class SafeError extends Error {
   constructor(
     message: string,
     public readonly responseCode: number = 500,
-    shouldLog = true
+    shouldLog = false
   ) {
     super(message);
     if (shouldLog) console.error(this);

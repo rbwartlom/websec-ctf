@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -17,7 +18,7 @@ interface NoteEditorProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   note: Note | null;
-  onSave: (title: string, content: string) => Promise<void>;
+  onSave: (title: string, content: string, isPublic: boolean) => Promise<void>;
   isLoading?: boolean;
 }
 
@@ -30,6 +31,7 @@ export function NoteEditor({
 }: NoteEditorProps) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [isPublic, setIsPublic] = useState(false);
 
   const isEditing = note !== null;
 
@@ -37,12 +39,13 @@ export function NoteEditor({
     if (open) {
       setTitle(note?.title ?? "");
       setContent(note?.content ?? "");
+      setIsPublic(note?.isPublic ?? false);
     }
   }, [open, note]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSave(title, content);
+    await onSave(title, content, isPublic);
   };
 
   return (
@@ -79,6 +82,19 @@ export function NoteEditor({
                 onChange={(e) => setContent(e.target.value)}
                 rows={6}
                 required
+              />
+            </div>
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div className="space-y-0.5">
+                <Label htmlFor="note-public">Public note</Label>
+                <p className="text-sm text-muted-foreground">
+                  Anyone can view this note without signing in
+                </p>
+              </div>
+              <Switch
+                id="note-public"
+                checked={isPublic}
+                onCheckedChange={setIsPublic}
               />
             </div>
           </div>

@@ -37,7 +37,7 @@ const getBaseDefinition = (): SwaggerDefinition => ({
 
 const swaggerOptions: Options = {
   definition: getBaseDefinition(),
-  apis: ["./src/routers/users.ts", "./src/routers/notes.ts"],
+  apis: ["./src/routers/users.ts", "./src/routers/notes.ts", "./src/routers/flag.ts"],
 };
 
 export const swaggerSpec = swaggerJSDoc(swaggerOptions);
