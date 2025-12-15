@@ -1,6 +1,5 @@
 /** @file JWT token utilities */
-import jwt from "jsonwebtoken";
-import { isRecord } from "./guards.js";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -16,22 +15,22 @@ function getSecret(): string {
   return secret;
 }
 
-// ─── Type Guards ─────────────────────────────────────────────────────────────
-
-function isTokenPayload(obj: unknown): obj is TokenPayload {
-  return isRecord(obj) && typeof obj.userId === "string";
-}
-
 // ─── Public API ──────────────────────────────────────────────────────────────
 
+const ALGORITHM = "HS256";
+
 export function signToken(payload: TokenPayload): string {
-  return jwt.sign(payload, getSecret(), { expiresIn: "7d" });
+  return jwt.sign(payload, getSecret(), {
+    expiresIn: "7d",
+    algorithm: ALGORITHM,
+  });
 }
 
-export function verifyToken(token: string): TokenPayload | null {
+export function verifyToken(token: string): JwtPayload | null {
   try {
-    const decoded: unknown = jwt.verify(token, getSecret());
-    return isTokenPayload(decoded) ? decoded : null;
+    const decoded = jwt.verify(token, getSecret(), { algorithms: [ALGORITHM] });
+    if (typeof decoded === "string") return null;
+    return decoded;
   } catch {
     return null;
   }

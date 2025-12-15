@@ -4,6 +4,7 @@ import { Request } from "express";
 declare global {
   namespace Express {
     interface Request {
+      // add userId property to request, just so typescript knows about it
       userId?: string;
     }
   }

@@ -8,7 +8,7 @@ const generateId = () => crypto.randomUUID();
 export function defineSchema<T>(fields: SchemaDefinition<T>) {
   return new Schema(
     {
-      id: { type: String, default: generateId },
+      id: { type: String, default: generateId, unique: true },
       ...fields,
     }
   );

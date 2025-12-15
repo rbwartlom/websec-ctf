@@ -6,13 +6,13 @@ import { CreateNoteInput, UpdateNoteInput } from "../utils/input.js";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-async function findUserNote(userId: string, noteId: string): Promise<HydratedDocument<INote>> {
+async function findUserNote(
+  userId: string,
+  noteId: string
+): Promise<HydratedDocument<INote>> {
   const note = await Note.findById(noteId);
-  if (!note) {
+  if (!note || note.owner !== userId) {
     throw new SafeError("Note not found", 404);
-  }
-  if (note.owner !== userId) {
-    throw new SafeError("Note not found", 404); // Don't leak existence
   }
   return note;
 }
@@ -54,8 +54,10 @@ export async function updateNote(
   return note;
 }
 
-export async function deleteNote(userId: string, noteId: string): Promise<void> {
+export async function deleteNote(
+  userId: string,
+  noteId: string
+): Promise<void> {
   const note = await findUserNote(userId, noteId);
   await note.deleteOne();
 }
-

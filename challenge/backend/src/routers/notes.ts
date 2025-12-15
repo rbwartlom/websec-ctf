@@ -23,7 +23,7 @@ notesRouter.use(requireAuth);
  * @throws SafeError if userId is missing (should not happen after requireAuth)
  */
 function getUserId(req: Request): string {
-  if (!req.userId) {
+  if (req.userId === undefined) {
     throw new SafeError("Unauthorized", 401);
   }
   return req.userId;
