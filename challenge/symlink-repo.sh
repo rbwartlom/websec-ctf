@@ -7,7 +7,7 @@ set -e
 # Files/paths to exclude from symlinking (supports exact matches and prefix matches)
 REDACTED_FILES=(
     "symlink-repo.sh"
-    
+    "initialize-database.ts" # want to include additional logic to make sure uuid doesn't start with 0-9 (really hard to hack then)
 )
 
 # Check if a file should be skipped

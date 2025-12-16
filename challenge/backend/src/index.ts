@@ -29,7 +29,7 @@ export function createApp() {
       ? {
           origin: [
             // localhost:517{3-9}, which are ports likely assigned by vite in dev
-            ...Array.from({ length: 9 - 4 }, (_, i) => `http://localhost:517${i + 4}`),
+            ...Array.from({ length: 9 - 3 }, (_, i) => `http://localhost:517${i + 3}`),
           ],
           credentials: true,
         }

@@ -20,15 +20,10 @@ Idea:
 First, create a `flag.key` file in the root directory.
 To build the docker image, run:
 ```
-docker build -t <tag> --build-arg BASE_URL=http://localhost:<your-port> .
+docker build -t <tag> .
 ```
-or if deploying on a remote url:
-```
-docker build -t <tag> --build-arg BASE_URL=<your-base-url> .
-```
-(the BASE_URL arg is used for swagger docs, but the frontend will work without it)
 
 To run the docker image, run:
 ```
-docker run -p <your-port>:3000  <tag>
+docker run -p <your-port>:3000 <tag>
 ```

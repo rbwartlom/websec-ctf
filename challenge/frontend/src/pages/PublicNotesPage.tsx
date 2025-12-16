@@ -66,8 +66,8 @@ export function PublicNotesPage() {
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="mb-6">
           <h2 className="text-2xl font-semibold">Browse Public Notes</h2>
-          <p className="text-muted-foreground mt-1">
-            Explore notes shared publicly by our community
+          <p className="text-foreground mt-1">
+            Synergize <b>cross-functional</b> collaboration paradigms to <b>maximize stakeholder engagement</b> through our <b>revolutionary knowledge-sharing platform</b>, empowering next-generation <b>digital transformation</b> initiatives that optimize operational excellence and accelerate <b>sustainable growth trajectories</b> across all verticals!
           </p>
         </div>
 

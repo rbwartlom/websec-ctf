@@ -1,6 +1,7 @@
 /**
  * Auth Service
  * Manages JWT token storage and authentication state
+ * Localstorage because we're js devs!
  */
 
 const TOKEN_KEY = "auth_token";

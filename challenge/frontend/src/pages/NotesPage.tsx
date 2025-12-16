@@ -203,7 +203,7 @@ export function NotesPage() {
               View Shared
             </Button>
             <Button variant="outline" asChild>
-              <Link to="/public">Browse Public</Link>
+              <Link to="/public">See Public Thinkers</Link>
             </Button>
             <Button onClick={handleCreateNote}>New Note</Button>
           </div>

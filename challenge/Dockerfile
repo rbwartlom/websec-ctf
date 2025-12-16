@@ -41,8 +41,7 @@ COPY backend/package*.json ./
 RUN bun install --frozen-lockfile --production
 COPY backend/ .
 # base url which will be exposed to the outside world
-ARG BASE_URL="http://localhost:3000"
-ENV BASE_URL=${BASE_URL}
+ENV BASE_URL=/
 RUN bun run build-swagger
 
 # build frontend
@@ -67,7 +66,7 @@ RUN mkdir -p /data/db
 
 EXPOSE 3000
 
-ENV BASE_URL=${BASE_URL}
+ENV BASE_URL=/
 CMD ["/app/docker-start.sh"]
 
 

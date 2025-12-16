@@ -15,7 +15,8 @@ const baseUrl =
 if (!baseUrl) {
   throw new Error("BASE_URL is not set");
 }
-if (baseUrl.endsWith("/")) {
+// `/` is fine, but ending with / is not
+if (baseUrl !== "/" && baseUrl.endsWith("/")) {
   throw new Error("BASE_URL must not end with a slash");
 }
 
