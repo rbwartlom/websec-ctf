@@ -4,6 +4,8 @@ import { User, IUser } from "../models/User.js";
 import { hashPassword, verifyPassword } from "../utils/password.js";
 import { signToken } from "../utils/jwt.js";
 import { SignupInput, LoginInput } from "../utils/input.js";
+import mongoose from "mongoose";
+import { Note } from "../models/Note.js";
 
 // ─── Validation ──────────────────────────────────────────────────────────────
 
@@ -72,4 +74,16 @@ export async function getMe(
   }
 
   return { id: user.id, email: user.email };
+}
+
+export async function deleteMe(userId: string): Promise<void> {
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      await User.deleteOne({ id: userId }).session(session);
+      await Note.deleteMany({ owner: userId }).session(session);
+    });
+  } finally {
+    await session.endSession();
+  }
 }

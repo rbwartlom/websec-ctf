@@ -39,7 +39,7 @@ const noteSchema = defineSchema<INote>({
   title: { type: String, required: true },
   content: { type: String, required: true },
   owner: { type: String, required: true, ref: "User" },
-  sharedWith: { type: [String], ref: "User" },
+  sharedWith: { type: [String], ref: "User", default: undefined },
   isPublic: { type: Boolean, default: false },
 });
 

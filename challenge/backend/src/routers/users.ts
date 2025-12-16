@@ -3,7 +3,7 @@ import { Router } from "express";
 import { handleAsyncErrors, SafeError } from "../config.js";
 import { requireAuth } from "../auth.js";
 import { isSignupInput, isLoginInput } from "../utils/input.js";
-import { signupUser, loginUser, getMe } from "../controllers/user.js";
+import { signupUser, loginUser, getMe, deleteMe } from "../controllers/user.js";
 import "../types.js"; // Ensure Express augmentation is loaded
 
 const usersRouter = Router();
@@ -138,11 +138,37 @@ usersRouter.get(
   "/me",
   requireAuth,
   handleAsyncErrors(async (req, res) => {
-    if (!req.userId) {
+    if (req.userId === undefined) {
       throw new SafeError("Unauthorized", 401);
     }
     const user = await getMe(req.userId);
     res.json(user);
+  })
+);
+
+/**
+ * @openapi
+ * /api/users/me:
+ *   delete:
+ *     tags: [Users]
+ *     summary: Delete current user profile (GDPR)
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       204:
+ *         description: User deleted successfully
+ *       401:
+ *         description: Unauthorized
+ */
+usersRouter.delete(
+  "/me",
+  requireAuth,
+  handleAsyncErrors(async (req, res) => {
+    if (req.userId === undefined) {
+      throw new SafeError("Unauthorized", 401);
+    }
+    await deleteMe(req.userId);
+    res.status(204).send();
   })
 );
 

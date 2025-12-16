@@ -7,7 +7,7 @@ import mongoose from "mongoose";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 
-import { checkENVs, MONGODB_URI, PORT, SafeError } from "./config.js";
+import { checkENVs, MONGODB_URI, NODE_ENV, PORT, SafeError } from "./config.js";
 import { swaggerSpec } from "./swagger.js";
 import usersRouter from "./routers/users.js";
 import notesRouter from "./routers/notes.js";
@@ -25,7 +25,7 @@ export function createApp() {
   app.use(helmet());
   // CORS
   const corsOptions =
-    process.env.NODE_ENV === "development"
+    NODE_ENV === "development"
       ? { origin: ["http://localhost:5173"], credentials: true }
       : { origin: process.env.BASE_URL, credentials: true };
   app.use(cors(corsOptions));
@@ -36,6 +36,9 @@ export function createApp() {
   app.use("/api/notes", notesRouter);
   app.use("/api/flag", flagRouter);
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  app.use("/api/docs.json", (_req, res) => {
+    res.json(swaggerSpec);
+  });
 
   // API 404
   app.use("/api/*", (_req, res) => {
@@ -73,7 +76,7 @@ export async function connectDB(): Promise<void> {
 
 // ─── Bootstrap ───────────────────────────────────────────────────────────────
 
-if (process.env.NODE_ENV !== "test") {
+if (NODE_ENV !== "test") {
   checkENVs();
   connectDB().then(() => {
     const app = createApp();

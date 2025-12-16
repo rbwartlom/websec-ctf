@@ -205,9 +205,12 @@ export async function getPublicNote(noteId: string): Promise<INote> {
 }
 
 // ─── Cursor-based Pagination ──────────────────────────────────────────────────
-// I've heard that cursor-based pagination is the best way to paginate for scalable distributed system like this one,
-// so here's my generic implementation. I think this is some amazing code.
-// https://medium.com/@maryam-bit/offset-vs-cursor-based-pagination-choosing-the-best-approach-2e93702a118b
+/*
+https://medium.com/@maryam-bit/offset-vs-cursor-based-pagination-choosing-the-best-approach-2e93702a118b
+
+I've heard that cursor-based pagination is the best way to paginate for scalable distributed system like this one, so here's my generic implementation. 
+I think this is some amazing code and I hope this will get me promoted to senior prompt engineer.
+*/
 
 interface PaginatedResult<T> {
   items: T[];
