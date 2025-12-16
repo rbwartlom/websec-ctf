@@ -1,0 +1,4 @@
+I really need to get promoted to senior prompt engineer at work, and I realized there were just not enough ways to write, save, and share notes on the cloud. So I decided to make this super useful project. It is especially made for cracked devs like me to share notes about programming and short code snippets.
+Claude did help out a lot, but of course I thought of much of the excellent logic myself, as AI could never come up with something so genius.
+
+It's completely in typescript, offers good developer experience, and even API docs! I just need to apply these skills at work and surely I will be promoted.
