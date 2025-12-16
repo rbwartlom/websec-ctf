@@ -18,6 +18,7 @@ import {
   unshareNote,
   getPaginatedPublicNotes,
   getPublicNote,
+  getPaginatedRegexNotes,
 } from "../controllers/note.js";
 import "../types.js"; // Ensure Express augmentation is loaded
 
@@ -51,7 +52,7 @@ function getUserId(req: Request): string {
  * @openapi
  * /api/notes/public:
  *   get:
- *     tags: [Notes]
+ *     tags: [Public Notes]
  *     summary: List public notes with cursor-based pagination
  *     parameters:
  *       - in: query
@@ -89,7 +90,7 @@ notesRouter.get(
  * @openapi
  * /api/notes/public/{id}:
  *   get:
- *     tags: [Notes]
+ *     tags: [Public Notes]
  *     summary: Get a single public note
  *     parameters:
  *       - in: path
@@ -188,6 +189,78 @@ notesRouter.get(
   handleAsyncErrors(async (req, res) => {
     const notes = await getUserNotes(getUserId(req));
     res.json(notes);
+  })
+);
+
+/**
+ * @openapi
+ * /api/notes/search:
+ *   get:
+ *     tags: [Notes]
+ *     summary: Search notes by title using regex with cursor-based pagination
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: regex
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Regex pattern to search note title
+ *       - in: query
+ *         name: cursor
+ *         schema:
+ *           type: string
+ *         description: Base64-encoded cursor for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *           minimum: 1
+ *           maximum: 100
+ *         description: Maximum number of notes to return
+ *     responses:
+ *       200:
+ *         description: Paginated list of matching notes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Note'
+ *                 nextCursor:
+ *                   type: string
+ *                   nullable: true
+ *                   description: Cursor for the next page, null if no more results
+ *       400:
+ *         description: Invalid regex pattern or missing regex parameter
+ *       401:
+ *         description: Unauthorized
+ */
+notesRouter.get(
+  "/search",
+  handleAsyncErrors(async (req, res) => {
+    const regex = req.query.regex;
+    if (typeof regex !== "string" || regex.length === 0) {
+      throw new SafeError("Missing or invalid regex parameter", 400);
+    }
+
+    const cursor = typeof req.query.cursor === "string" ? req.query.cursor : undefined;
+
+    let limit = 20;
+    if (typeof req.query.limit === "string") {
+      const parsed = parseInt(req.query.limit, 10);
+      if (!Number.isNaN(parsed) && parsed >= 1 && parsed <= 100) {
+        limit = parsed;
+      }
+    }
+
+    const result = await getPaginatedRegexNotes(getUserId(req), cursor, limit, regex);
+    res.json(result);
   })
 );
 

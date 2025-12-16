@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Header } from "../components/Header";
 import { NoteList } from "../components/NoteList";
 import { NoteEditor } from "../components/NoteEditor";
@@ -8,6 +9,7 @@ import { ShareDialog } from "../components/ShareDialog";
 import { ViewSharedNoteDialog } from "../components/ViewSharedNoteDialog";
 import {
   getApiNotes,
+  getApiNotesSearch,
   postApiNotes,
   putApiNotesById,
   deleteApiNotesById,
@@ -29,11 +31,58 @@ export function NotesPage() {
   const [sharingNote, setSharingNote] = useState<Note | null>(null);
   const [viewSharedDialogOpen, setViewSharedDialogOpen] = useState(false);
 
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Note[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isSearchMode, setIsSearchMode] = useState(false);
+  const [searchNextCursor, setSearchNextCursor] = useState<string | null>(null);
+
   const fetchNotes = useCallback(async () => {
     const response = await getApiNotes();
     if (response.data) {
       setNotes(response.data);
     }
+  }, []);
+
+  const handleSearch = useCallback(async (cursor?: string) => {
+    if (!searchQuery.trim()) {
+      setIsSearchMode(false);
+      setSearchResults([]);
+      setSearchNextCursor(null);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const response = await getApiNotesSearch({
+        query: {
+          regex: searchQuery,
+          cursor,
+          limit: 20,
+        },
+      });
+      if (response.data) {
+        if (cursor) {
+          // Append to existing results for pagination
+          setSearchResults((prev) => [...prev, ...(response.data?.items ?? [])]);
+        } else {
+          // New search, replace results
+          setSearchResults(response.data.items ?? []);
+        }
+        setSearchNextCursor(response.data.nextCursor ?? null);
+        setIsSearchMode(true);
+      }
+    } finally {
+      setIsSearching(false);
+    }
+  }, [searchQuery]);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery("");
+    setSearchResults([]);
+    setIsSearchMode(false);
+    setSearchNextCursor(null);
   }, []);
 
   const fetchUser = useCallback(async () => {
@@ -84,6 +133,10 @@ export function NotesPage() {
       }
       setEditorOpen(false);
       await fetchNotes();
+      // Refresh search results if in search mode
+      if (isSearchMode) {
+        void handleSearch();
+      }
     } finally {
       setIsSaving(false);
     }
@@ -94,6 +147,10 @@ export function NotesPage() {
       path: { id: noteId },
     });
     await fetchNotes();
+    // Update search results if in search mode
+    if (isSearchMode) {
+      setSearchResults((prev) => prev.filter((n) => n.id !== noteId));
+    }
   };
 
   const handleOpenShareDialog = (note: Note) => {
@@ -152,10 +209,65 @@ export function NotesPage() {
           </div>
         </div>
 
+        {/* Search Bar */}
+        <div className="mb-6">
+          <form
+            className="flex gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void handleSearch();
+            }}
+          >
+            <Input
+              type="text"
+              placeholder="Search notes by title (regex supported)..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1"
+            />
+            <Button type="submit" variant="secondary" disabled={isSearching || !searchQuery.trim()}>
+              {isSearching ? "Searching..." : "Search"}
+            </Button>
+            {isSearchMode && (
+              <Button type="button" variant="outline" onClick={handleClearSearch}>
+                Clear
+              </Button>
+            )}
+          </form>
+        </div>
+
         {isLoading ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground">Loading notes...</p>
           </div>
+        ) : isSearchMode ? (
+          <>
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Found {searchResults.length} matching note{searchResults.length !== 1 ? "s" : ""}
+              </p>
+            </div>
+            <NoteList
+              notes={searchResults}
+              currentUserId={userId}
+              onEdit={handleEditNote}
+              onDelete={handleDeleteNote}
+              onShare={handleOpenShareDialog}
+              emptyMessage="No matching notes"
+              emptySubMessage="Try a different search pattern"
+            />
+            {searchNextCursor && (
+              <div className="mt-6 text-center">
+                <Button
+                  variant="outline"
+                  onClick={() => void handleSearch(searchNextCursor)}
+                  disabled={isSearching}
+                >
+                  {isSearching ? "Loading..." : "Load More"}
+                </Button>
+              </div>
+            )}
+          </>
         ) : (
           <NoteList
             notes={notes}

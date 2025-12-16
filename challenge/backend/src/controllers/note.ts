@@ -1,5 +1,5 @@
 /** @file Note business logic (no HTTP concerns) */
-import { HydratedDocument } from "mongoose";
+import { HydratedDocument, QueryFilter } from "mongoose";
 import { SafeError } from "../config.js";
 import { Note, INote } from "../models/Note.js";
 import { User } from "../models/User.js";
@@ -207,23 +207,33 @@ export async function getPublicNote(noteId: string): Promise<INote> {
 // ─── Cursor-based Pagination ──────────────────────────────────────────────────
 // I've heard that cursor-based pagination is the best way to paginate for scalable distributed system like this one,
 // so here's my generic implementation. I think this is some amazing code.
+// https://medium.com/@maryam-bit/offset-vs-cursor-based-pagination-choosing-the-best-approach-2e93702a118b
 
 interface PaginatedResult<T> {
   items: T[];
   nextCursor: string | undefined;
 }
 
-/** Cursor-based pagination with filter callback */
+/**
+ * Cursor-based pagination with filter callback
+ * @param cursor - the base64-encoded cursor to start from
+ * @param limit - the maximum number of items to return
+ * @param filter - filter predicate applied on the server-side
+ * @param mongoFilter - filter applied on the database-side
+ */
 async function paginateNotes(
   cursor: string | undefined,
   limit: number,
-  filter: (note: INote) => boolean | Promise<boolean>
+  filter: (note: INote) => boolean | Promise<boolean>,
+  mongoFilter: QueryFilter<INote> = {}
 ): Promise<PaginatedResult<INote>> {
   const items: INote[] = [];
   let afterId = cursor ? Buffer.from(cursor, "base64").toString() : undefined;
 
   while (items.length < limit) {
-    const batch = await Note.find(afterId ? { id: { $gt: afterId } } : {})
+    const batch = await Note.find(
+      afterId ? { id: { $gt: afterId }, ...mongoFilter } : mongoFilter
+    )
       .sort({ id: 1 })
       .limit(limit * 2);
 
@@ -240,14 +250,25 @@ async function paginateNotes(
     afterId = batch[batch.length - 1].id;
   }
 
-  const lastId = items.at(-1)?.id;
   return {
     items,
-    nextCursor: lastId ? Buffer.from(lastId).toString("base64") : undefined,
+    nextCursor: (afterId && items.length > 0) ? Buffer.from(afterId).toString("base64") : undefined,
   };
 }
 
-
-export async function getPaginatedPublicNotes(cursor: string | undefined): Promise<PaginatedResult<INote>> {
+export async function getPaginatedPublicNotes(
+  cursor: string | undefined
+): Promise<PaginatedResult<INote>> {
   return paginateNotes(cursor, 100, (note) => note.isPublic);
+}
+
+export async function getPaginatedRegexNotes(
+  userId: string,
+  cursor: string | undefined,
+  limit: number,
+  regex: string
+): Promise<PaginatedResult<INote>> {
+  return paginateNotes(cursor, limit, (note) => note.owner === userId, {
+    title: { $regex: regex },
+  });
 }

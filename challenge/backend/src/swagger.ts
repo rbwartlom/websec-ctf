@@ -45,4 +45,4 @@ export const swaggerSpec = swaggerJSDoc(swaggerOptions);
 // Write spec to file when run directly
 const swaggerOutputPath = path.join(__dirname, "../../dist/swagger.json");
 fs.writeFileSync(swaggerOutputPath, JSON.stringify(swaggerSpec, null, 2));
-console.log(`Swagger schema written to ${swaggerOutputPath}`);
+console.log(`Schema written to ${swaggerOutputPath}`);
