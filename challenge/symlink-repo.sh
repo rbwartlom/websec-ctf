@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Usage: ./symlink-repo.sh <target-directory>
+# Links entire dir minus ignored files minus gitignored files
 
 set -e
 
