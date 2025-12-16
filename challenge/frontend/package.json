@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "generate": "bun run ./src/build-script.ts",
-    "dev": "bun run generate && vite",
+    "dev": "bun run generate && vite --mode development",
     "build": "bun run generate && vite build",
     "lint": "eslint .",
     "preview": "vite preview"

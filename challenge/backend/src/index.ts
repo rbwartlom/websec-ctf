@@ -6,13 +6,13 @@ import { fileURLToPath } from "url";
 import mongoose from "mongoose";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
+import helmet from "helmet";
 
 import { checkENVs, MONGODB_URI, NODE_ENV, PORT, SafeError } from "./config.js";
 import { swaggerSpec } from "./swagger.js";
 import usersRouter from "./routers/users.js";
 import notesRouter from "./routers/notes.js";
 import flagRouter from "./routers/flag.js";
-import helmet from "helmet";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,7 +26,13 @@ export function createApp() {
   // CORS
   const corsOptions =
     NODE_ENV === "development"
-      ? { origin: ["http://localhost:5173"], credentials: true }
+      ? {
+          origin: [
+            // localhost:517{3-9}, which are ports likely assigned by vite in dev
+            ...Array.from({ length: 9 - 4 }, (_, i) => `http://localhost:517${i + 4}`),
+          ],
+          credentials: true,
+        }
       : { origin: process.env.BASE_URL, credentials: true };
   app.use(cors(corsOptions));
   app.use(express.json());
@@ -47,7 +53,14 @@ export function createApp() {
 
   // Static frontend
   const fePath = path.join(__dirname, "../../dist/frontend");
+
+  // Serve static files from the frontend
   app.use(express.static(fePath));
+
+  // All other GET requests not handled before will return our frontend app
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(fePath, "index.html"));
+  });
 
   // Error handler
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
@@ -76,7 +89,7 @@ export async function connectDB(): Promise<void> {
 
 // ─── Bootstrap ───────────────────────────────────────────────────────────────
 
-if (NODE_ENV !== "test") {
+if (NODE_ENV !== "test" && NODE_ENV !== "schema" && NODE_ENV !== "init-db") {
   checkENVs();
   connectDB().then(() => {
     const app = createApp();

@@ -62,6 +62,7 @@ The codebase follows a layered architecture:
 
 ## Getting Started
 
+(Ensure you are in the backend directory)
 1. Ensure [Bun](https://bun.sh) is installed
 2. Run `bun install`
 3. Create a `.env` file (see below)
@@ -81,7 +82,6 @@ Example `.env`:
 ```
 MONGODB_URI=mongodb://localhost:27017/notes
 JWT_SECRET=your-secret-key-here
-PORT=3000
 ```
 
 ## Key Features

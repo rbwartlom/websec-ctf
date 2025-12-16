@@ -1,6 +1,10 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from "react-router-dom";
 import toast from "react-hot-toast";
 import "./index.css";
 import App from "./App";
@@ -12,10 +16,16 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { client } from "./services/api-service";
 import { getAuthHeader } from "./services/auth-service";
 
-// Configure the API client
-client.setConfig({
-  baseURL: "http://localhost:3000",
-});
+if (!import.meta.env.DEV) {
+  client.setConfig({
+    baseURL: import.meta.env.BASE_URL,
+  });
+} else {
+  client.setConfig({
+    // TODO: make this dynamic
+    baseURL: "http://localhost:3000",
+  });
+}
 
 // Add auth header to all requests
 client.instance.interceptors.request.use((config) => {
@@ -35,7 +45,7 @@ client.instance.interceptors.response.use(
 
     if (error !== null && typeof error === "object") {
       const err = error as Record<string, unknown>;
-      
+
       // Check for axios response error structure
       if (err.response && typeof err.response === "object") {
         const response = err.response as Record<string, unknown>;

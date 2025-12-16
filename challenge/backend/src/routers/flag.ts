@@ -10,9 +10,15 @@ const execFileAsync = promisify(execFile);
 
 const flagRouter = Router();
 
-const FLAG_PASSWORD_HASH = process.env.FLAG_PASSWORD;
-if (!isNonEmptyString(FLAG_PASSWORD_HASH)) {
-  throw new Error("FLAG_PASSWORD_HASH is not set");
+/**
+ * Gets the FLAG_PASSWORD hash lazily (at request time, not module load time).
+ */
+function getFlagPasswordHash(): string {
+  const hash = process.env.FLAG_PASSWORD;
+  if (!isNonEmptyString(hash)) {
+    throw new SafeError("Flag password not configured", 500);
+  }
+  return hash;
 }
 
 /**
@@ -63,7 +69,8 @@ flagRouter.post(
       throw new SafeError("Invalid request body", 400);
     }
 
-    const valid = await verifyPassword(req.body.password, FLAG_PASSWORD_HASH);
+    const flagPasswordHash = getFlagPasswordHash();
+    const valid = await verifyPassword(req.body.password, flagPasswordHash);
     if (!valid) {
       throw new SafeError("Invalid password", 401);
     }

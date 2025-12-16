@@ -4,6 +4,23 @@
 
 set -e
 
+# Files/paths to exclude from symlinking (supports exact matches and prefix matches)
+REDACTED_FILES=(
+    "symlink-repo.sh"
+    
+)
+
+# Check if a file should be skipped
+should_skip() {
+    local file="$1"
+    for pattern in "${REDACTED_FILES[@]}"; do
+        if [ "$file" = "$pattern" ] || [[ "$file" == "$pattern"* ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
 if [ -z "$1" ]; then
     echo "Usage: $0 <target-directory>"
     echo "Example: $0 /path/to/target"
@@ -30,8 +47,11 @@ echo "Symlinking to:   $TARGET_DIR"
     # Skip if file doesn't exist (deleted but cached)
     [ -e "$file" ] || continue
     
-    # Skip this script itself
-    [ "$file" = "symlink-repo.sh" ] && continue
+    # Skip redacted files
+    if should_skip "$file"; then
+        echo "Skipped (redacted): $file"
+        continue
+    fi
     
     # Get the directory part of the file path
     dir=$(dirname "$file")

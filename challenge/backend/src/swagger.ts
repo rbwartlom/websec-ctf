@@ -8,6 +8,17 @@ import { NODE_ENV, PORT } from "./config.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const baseUrl =
+  NODE_ENV === "development"
+    ? `http://localhost:${PORT}`
+    : process.env.BASE_URL;
+if (!baseUrl) {
+  throw new Error("BASE_URL is not set");
+}
+if (baseUrl.endsWith("/")) {
+  throw new Error("BASE_URL must not end with a slash");
+}
+
 const getBaseDefinition = (): SwaggerDefinition => ({
   openapi: "3.0.0",
   info: {
@@ -17,10 +28,7 @@ const getBaseDefinition = (): SwaggerDefinition => ({
   },
   servers: [
     {
-      url:
-        NODE_ENV === "production"
-          ? process.env.BASE_URL
-          : `http://localhost:${PORT}`,
+      url: baseUrl,
       description: "Main server",
     },
   ],

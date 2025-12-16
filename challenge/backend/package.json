@@ -4,8 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "NODE_ENV=development bun --watch src/index.ts",
-    "start": "bun src/index.ts",
-    "build-swagger": "bun src/swagger.ts"
+    "start": "NODE_ENV=production bun src/index.ts",
+    "build-swagger": "NODE_ENV=schema bun src/swagger.ts",
+    "init-db": "NODE_ENV=init-db bun src/initialize-database.ts"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"

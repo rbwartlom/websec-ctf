@@ -6,11 +6,11 @@ import { NextFunction, Request, Response } from "express";
 export const PORT = Number(process.env.PORT) || 3000;
 export const MONGODB_URI = process.env.MONGODB_URI ?? "";
 export const JWT_SECRET = process.env.JWT_SECRET ?? "";
-const nodeEnvValues = ["development", "production", "test"] as const;
+const nodeEnvValues = ["development", "production", "test", "schema", "init-db"] as const;
 type NodeEnv = (typeof nodeEnvValues)[number];
 export const NODE_ENV: NodeEnv = process.env.NODE_ENV as NodeEnv;
 if (!nodeEnvValues.includes(NODE_ENV)) {
-  throw new Error("NODE_ENV must be either development or production");
+  throw new Error(`NODE_ENV must be ${nodeEnvValues.join(" | ")}; got ${NODE_ENV}`);
 }
 
 const REQUIRED_ENVS = ["MONGODB_URI", "JWT_SECRET"];
