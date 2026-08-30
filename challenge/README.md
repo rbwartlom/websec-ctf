@@ -2,7 +2,7 @@
 
 ## Some Notes on Structure (Hint)
 The frontend is just for show, and was made genuninely entirely by Claude 4.5 Opus, quite impressive in my opinion. It is just a presentation layer for the backend.
-The backend generates swagger api docs into /dist and the frontend reads them to generate types for it's api clients. This is also not relevant for the exploit.
+The backend generates swagger api docs into /dist and the frontend reads them to generate types for it's api clients. This doc generator is also not relevant for the exploit.
 A swagger UI for docs is available at /api/docs and /api/docs.json.
 
 

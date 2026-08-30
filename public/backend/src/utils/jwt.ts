@@ -1,1 +1,0 @@
-/Users/artelomo/Documents/tum-info/websec-project/challenge/backend/src/utils/jwt.ts
